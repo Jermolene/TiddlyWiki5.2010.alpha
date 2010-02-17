@@ -21,6 +21,15 @@ iVBORw0KGgoAAAANSUhEUgAAABkAAAAUBAMAAACKWYuOAAAAMFBMVEX///92dnZ2dnZ2dnZ2dnZ2dnZ2
 -->
 <html>
 <head>
+<script type="text/javascript">
+/*tiddlywiki-plugin*
+title: $tw.perf.startup
+description: Startup timing
+*/
+
+var $tw_startupTime = new Date();
+
+</script>
 <script type="text/x-tiddler">
 title: CopyrightNotice
 revision: 1
@@ -82,7 +91,6 @@ last five years this inventive and helpful group of individuals have shaped Tidd
 and in turn their feedback has driven the development of TiddlyWiki5.
 </script>
 <title>TiddlyWiki5 - a modernised non-linear inter-personal web notebook</title>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <script type="text/x-tiddler">
 title: ToDo
 revision: 1
@@ -94,40 +102,31 @@ tag: documentation
 
 ## Things to do
 - Replace switch(mimetype) with hashmaps
-- Add single page mode support
-- Add breadcrumbs
-- Add macro to display full field details
-- Add tiddler menu with commands for switching to edit mode etc
-- Add support for dropdowns for submenus
-- Add browser for browsing by a-z, tag, etc,
+- Add single page mode support & breadcrumbs
 - Eeek: the way we're detecting macroOutput is dodgy as we could pick up the macroOutput markers of nested macros
 - Links from macros in the DOM to tiddler objects should  be jQuery data() links to the original Tiddler() object. Then checking whether the tiddler has changed would be a case of checking whether the forward link to the next revision has been filled in on the Tiddler object.
 - Hungarian notation for variables and parameters? t,n,i = indexes, tidFoo = Tiddler object, twFooFoo = TiddlyWiki object, elBar = DOM element, nodeFoo = DOM node, jBar = jQuery object
 - Sucking in the content of external <sc**pt> tags via ajax so that it is available for saving as a single file
-- Bring in TiddlyWiki wikifier as $tw.converters.tiddlywiki.to.html
+- Bring in TiddlyWiki wikifier
 - Document loading process needs to include text fragments as literal text in the recipe
 - Add special comment markers that are picked up by the recipe and used as the insertion points for including tiddlers not in the original file, with filters for which tiddlers should be stored there (eg systemConfig as <sc**pt> tag), and a cascade down to a default storage marker for tiddlers that don't match the specialisations
-- Process all but the static CSS block, normalising CSS3 syntax to browser specific syntax, and  processing of CSS variables for eg grid positions and named colours. (Therefore encode the stylesheets  so that they are not processed by the browser)
+- Process all but the $tw.styles.static CSS block, normalising CSS3 syntax to browser specific syntax, and  processing of CSS variables for eg grid positions and named colours. (Therefore encode the stylesheets so that they are not processed by the browser)
 - Render CSS with a special converter function which creates an HTML rendition, and companion for going back after editting. The HTML rendition includes eg colour swatches which are editable in editMode
-- Add support for tiddler with focussed, usable with keyboard
-- Add support for selected tiddlers, also usable with tiddler
+- Add support for tiddler focussing and selecting, usable with keyboard
 - Add support for a 'more...' link that truncates long tiddlers
 - Add support for escaping special characters in tiddler/tag titles (eg #, :, @)
 
 ## Things to think about
-- Perhaps a "plugin" should be a bundle of tiddlers, stylesheets, images, documents etc. So, in the tw file, a tiddler would have a bundle field that points to a tiddler describing the plugin, including the manifest of the tiddlers in it, and their oiginal urls for updating the plugin. This way updates can bring in new tiddlers as well as modifying existing ones. And the core would be some sort of special bundle.
- - A bundle would actually be synonymous with a subscription, as in subscribing to someone elses feed or content bundle.
 - Should macro mechanism tie in with jQuery plugins, so what we actually end up with is a declarative syntax for expressing jQuery.fn calls
 - Consider whether it is excessive to have $tw as both JavaScript root and namespace for titles of system tiddlers
-- Add width and height for image tiddlers?
+- Add width and height fields for image tiddlers?
 - Note that file saving code can inject VBScript with `vReturn = object.execScript(sExpression, sLanguage)`
 - Figure out theme handling and how it relates to the CSS features
-- Lazy loading model is to explicitly trigger server operations to return additional tiddlers (eg retrieving bag, recipe, or search). The results are added to the store asynchronously, relying on macros autorefreshing to update with the new content
-- Skinner tiddler handling can be reasonably explicit: the server decides when to send skinny tiddlers. Ordinarily, the tiddler text reads as a string saying "Not loaded from server". There is a skinny flag, and a lazy loading method to trigger asking the server for the body text.
 </script>
 <style type="text/css">
 /*tiddlywiki-styles*
 title: $tw.styles.static
+description: Styles needed for display of static page content (ie when JavaScript is disabled)
 */
 
 body {
@@ -730,6 +729,8 @@ tag: documentation
 - Tiddler objects use getters and setters to enforce read-only access? (means IE8+ only) Perhaps fall back to properties, but can't enforce read-onlyness in IE6
  - Tiddler storage is done as a series of indexes into a set of Tiddler objects representing the revisions of each tiddler. There would be a title index, a user index, and a tag index. All these indexes would need to be maintained for insertions and deletions
  - How are tiddlers from other users handled?
+- Lazy loading model is to explicitly trigger server operations to return additional tiddlers (eg retrieving bag, recipe, or search). The results are added to the store asynchronously, relying on macros autorefreshing to update with the new content
+- Skinny tiddler handling can be reasonably explicit: the server decides when to bake skinny tiddlers into the TiddlyWiki. Ordinarily, the tiddler text reads as a string saying "Not loaded from server". There is a skinny flag, and a lazy loading method to trigger asking the server for the body text. NB A load of a skinny tiddler doesn't create a new revision, but the macro mechanism must still trigger an update
 </script>
 <script type="text/x-tiddler">
 title: TiddlyChaining
@@ -806,6 +807,7 @@ title: $tw.externals.showdown
 <style type="text/css">
 /*tiddlywiki-styles*
 title: $tw.styles.basic
+description: CSS declarations for basic TiddlyWiki UI elements
 */
 
 body {
@@ -969,6 +971,7 @@ svg {
 <style type="text/css">
 /*tiddlywiki-styles*
 title: $tw.styles.toolbar
+description: CSS declarations for toolbars and buttons
 */
 
 .tw_button {
@@ -1048,6 +1051,7 @@ title: $tw.styles.toolbar
 <script type="text/javascript">
 /*tiddlywiki-plugin*
 title: $tw
+description: Core framework for tiddler chaining
 */
 
 // Many thanks to John Resig and the rest of the jQuery team. The TiddlyWiki5 core steals many of their finely executed ideas
@@ -1110,7 +1114,7 @@ $tw.fn = $tw.prototype = {
 					break;
 				case "#": // #tagname	
 					for(t = 0; t<this.tiddlers.length; t++) {
-						if(this.tiddlers[t].tag && $.inArray(selector.substr(1),this.tiddlers[t].tag) !== -1) {
+						if(this.tiddlers[t].tags && $.inArray(selector.substr(1),this.tiddlers[t].tags) !== -1) {
 							filtered.push(this.tiddlers[t]);
 						}
 					}
@@ -1143,26 +1147,28 @@ $tw.fn.init.prototype = $tw.fn;
 </script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
-title: $tw.fn.display
+title: $tw.fn.render
+description: Chained tiddler command to display a raw tiddler (without a tiddler frame)
 */
 
-$tw.fn.display = function(options) {
+$tw.fn.render = function(options) {
 	var defaults = {
 		displayPoint: "body"
 	};
 	options = $.extend({},defaults,options);
 	this.each(function(i) {
-		$tw.display.renderTiddler(this).appendTo(options.displayPoint);
+		$tw.display.renderTiddler(this).appendTo($(options.displayPoint));
 	});
 };
 
 </script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
-title: $tw.fn.open
+title: $tw.fn.navigate
+description: Chained tiddler command to navigate to a tiddler, usually by opening it if required
 */
 
-$tw.fn.open = function(options) {
+$tw.fn.navigate = function(options) {
 	var defaults = {
 		editMode: false,
 		templateTitle: "$tw.templates.tiddler.default",
@@ -1171,7 +1177,7 @@ $tw.fn.open = function(options) {
 	options = $.extend({},defaults,options);
 	options.template = options.template ? options.template : $tw.store.getTiddler(options.templateTitle);
 	this.each(function(i) {
-		$tw.display.openTiddler(this,options);
+		$tw.display.navigateTiddler(this,options);
 	});
 };
 
@@ -1179,21 +1185,20 @@ $tw.fn.open = function(options) {
 <script type="text/javascript">
 /*tiddlywiki-plugin*
 title: $tw.log
+description: Support for logging debugging and performance messages
 */
 
 $tw.log = {};
 
 (function() {
 
-	$tw.log = function(args) {
-		if(window.console && window.console.log) {
-			try {
-				window.console.log.apply(window,arguments);
-			} catch(e) {
-				for(var t=0; t<arguments.length; t++)
-					console.log(arguments[t]);
-			}
-		}
+	// Thanks to Paul Irish, http://paulirish.com/2009/log-a-lightweight-wrapper-for-consolelog/
+	$tw.log = function(/* arguments */) {
+		var now = new Date();
+		var args = Array.prototype.slice.call(arguments);
+		args.push("time:",(now - $tw_startupTime)/1000);
+		window.console && console.log[console.firebug ? 
+		    'apply' : 'call'](console,args);
 	};
 	
 	$tw.logHex = function(string) {
@@ -1210,10 +1215,13 @@ $tw.log = {};
 
 })();
 
+$tw.log("Logging enabled");
+
 </script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
 title: $tw.utils
+description: Various tiny utility functions
 */
 
 $tw.utils = {};
@@ -1221,12 +1229,12 @@ $tw.utils = {};
 (function() {
 	
 	$tw.utils.arrayRemove = function(array,from,to) {
-		// Array Remove - By John Resig (MIT Licensed) - http://ejohn.org/blog/javascript-array-remove/
+		// Thanks to John Resig (MIT Licensed) - http://ejohn.org/blog/javascript-array-remove/
 		var rest = array.slice((to || from) + 1 || array.length);
 		array.length = from < 0 ? array.length + from : from;
 		return array.push.apply(array, rest);
 	};
-	
+
 	$tw.utils.addField = function(fields,name,value) {
 		if($.isArray(fields[name])) {
 			fields[name].push(value);
@@ -1236,7 +1244,8 @@ $tw.utils = {};
 			fields[name] = value;
 		}
 	};
-
+	
+	// Parse a string consisting of newline delimited "name:value" strings into a hashmap
 	$tw.utils.parseFields = function(text) {
 		var fields = {};
 		var lines = text.split("\n");
@@ -1247,7 +1256,21 @@ $tw.utils = {};
 		}
 		return fields;
 	};
-	
+
+	// Render an array of {name:,value:} objects using standard classes, with an optional array of names to exclude
+	$tw.utils.renderObject = function(object,excludeNames) {
+		var j = $([]);
+		for(var n in object) {
+			if(!excludeNames || $.inArray(n,excludeNames) == -1) {
+				var wrapper = $("<div/>").addClass("tw_dataRow");
+				$("<span/>").addClass("tw_dataName").text(n).appendTo(wrapper);
+				$("<span/>").addClass("tw_dataValue").text(object[n].toString()).appendTo(wrapper);
+				j = j.add(wrapper);
+			}
+		}
+		return j;
+	}
+
 	// Render an array of {name:,value:} objects using standard classes, with an optional array of names to exclude
 	$tw.utils.renderArray = function(array,excludeNames) {
 		var j = $([]);
@@ -1268,6 +1291,7 @@ $tw.utils = {};
 <script type="text/javascript">
 /*tiddlywiki-plugin*
 title: $tw.compatibility.internetExplorer.xml
+description: Shim for standard XML apis on Internet Explorer
 */
 
 (function() {
@@ -1288,70 +1312,89 @@ title: $tw.compatibility.internetExplorer.xml
 </script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
-title: $tw.Tiddler
+title: $tw.TiddlerRevision
+description: Object representing an immutable revision of a tiddler
 */
 
 /*
-A Tiddler object is an immutable collection of fields representing a particular revision
-of a particular tiddler in storage. Tiddler objects cannot be modified, instead a new
-revision of the same tiddler is created in storage
+A TiddlerRevision object is an immutable collection of fields representing a particular revision
+of a particular tiddler in storage. TiddlerRevision objects cannot be modified, instead a new
+revision of the same tiddler is created in storage.
+
+TODO: Although the immutability of TiddlerRevision objects can't be enforced on all browsers, it
+may be worth adding property setters that do so for HTML5 browsers
 */
 
-$tw.Tiddler = function(fields) {
-	// TODO: Should probably be a deep copy
-	for(var f in fields) {
-		if((f in $tw.Tiddler.knownFields) && $tw.Tiddler.checkFieldType(f,fields[f]))
-			this[f] = fields[f];
-	}
+$tw.TiddlerRevision = function(fields) {
+	$.extend(true,this,fields);
 };
 
-$tw.Tiddler.checkFieldType = function(name,value) {
-	var kf = $tw.Tiddler.knownFields[name];
-	var res = false;
-	if(kf) {
-		switch(kf.type) {
-			case "node":
-				res = typeof value == "object";
-				break;
-			case "string":
-				res = typeof value == "string";
-				break;
-			case "stringArray":
-				if($.isArray(value)) {
-					res = true;
-					for(var t=0; t<value.length; t++) {
-						if(typeof value[t] != "string")
-							res = false;
-					}
-				}
-				break;
+</script>
+<script type="text/javascript">
+/*tiddlywiki-plugin*
+title: $tw.Tiddler
+description: Object representing a Tiddler
+*/
+
+/*
+A Tiddler object is an indexed collection of tiddler revisions
+*/
+
+// Create a Tiddler object:
+// new Tiddler([index],fields | TiddlerRevision,[index],fields | TiddlerRevision,..)
+// - See $tw.Tiddler.addRevision for argument details
+$tw.Tiddler = function(/* arguments */) {
+	this.revisions = {}; // Hashmap treated as an integer-indexed sparse array of TiddlerRevisions
+	this.currentRevision = -1; // Keeping track of maximum revision index
+	this.addRevision.apply(this,arguments);
+};
+
+// Add a new revision to a tiddler:
+// myTiddler.addRevision([index],fields | TiddlerRevision,[index],fields | TiddlerRevision,...)
+//   - create a tiddler with multiple revisions, optionally specifying a base revision index
+// Fields are copied by value into a new TiddlerRevision object. Existing TiddlerRevision objects are assigned
+// directly, without being copied. Any existing revision with the same index is overwritten
+$tw.Tiddler.prototype.addRevision = function(/* arguments */) {
+	var argIndex = 0; // For stepping through the arguments
+	var baseIndex = this.currentRevision > 0 ? this.currentRevision + 1 : 1; // Default revision index
+	while(argIndex < arguments.length) {
+		// Check for a base index
+		if(typeof arguments[argIndex] === "number") {
+			baseIndex = arguments[argIndex++];
 		}
-	return res;
+		var revision;
+		// Check for fields or a TiddlerRevision
+		if(arguments[argIndex] instanceof $tw.TiddlerRevision) {
+			revision = arguments[argIndex++];
+		} else if(typeof arguments[argIndex] === "object") {
+			revision = new $tw.TiddlerRevision(arguments[argIndex++]);
+		}
+		// Insert the new revision
+		if(revision) {
+			this.currentRevision = baseIndex > this.currentRevision ? baseIndex : this.currentRevision;
+			this.revisions[baseIndex++] = revision;
+		}
+	}
+	this.cacheCurrentFields();
+	return this.currentRevision;
+};
+
+$tw.Tiddler.prototype.cacheCurrentFields = function() {
+	var fields = this.currentRevision > 0 ? this.revisions[this.currentRevision] : undefined;
+	if(fields) {
+		this.title = fields.title;
+		this.text = fields.text;
+		this.tags = fields.tags;
+		this.type = fields.type;
 	}
 };
 
-$tw.Tiddler.knownFields = {
-		"title": {type: "string"},
-		"revision": {type: "string"},
-		"text": {type: "string"},
-		"type": {type: "string"},
-		"format": {type: "string"},
-		"source": {type: "string"},
-		"created": {type: "date"},
-		"creator": {type: "string"},
-		"tag": {type: "stringArray"},
-		"storage": {type: "node"}
-	};
+$tw.Tiddler.prototype.currentRevision = function() {
+	return this.currentRevision;
+};
 
 $tw.Tiddler.prototype.getFields = function() {
-	var result = [];
-	for(var t in $tw.Tiddler.knownFields) {
-		var f = $tw.Tiddler.knownFields[t];
-		if(t in this) {
-			result.push({name: t, value: String(this[t])});
-		}
-	}
-	return result;
+	return this.currentRevision > 0 ? this.revisions[this.currentRevision] : undefined;
 };
 
 $tw.Tiddler.prototype.toHtml = function() {
@@ -1436,7 +1479,7 @@ $tw.store = {};
 		}
 		for(var t=untriggeredNotifications.length-1; t>=0; t--) {
 			var n = untriggeredNotifications[t];
-			if(true) { // if($tw(tiddler).filter(n.selector)) {
+			if(true) { // TODO: if($tw(tiddler).filter(n.selector)) {
 				triggeredNotifications.push(n);
 				untriggeredNotifications = $tw.utils.arrayRemove(untriggeredNotifications,t,t+1)
 			}
@@ -1472,7 +1515,7 @@ $tw.store = {};
 	$tw.store.getTiddlersByTag = function(tag) {
 		var result = [];
 		for(var t in tiddlers) {
-			if(tiddlers[t]["tag"] && $.inArray(tag,tiddlers[t]["tag"]) != -1)
+			if(tiddlers[t].tags && $.inArray(tag,tiddlers[t].tags) != -1)
 				result.push(tiddlers[t]);
 		}
 		return result;
@@ -1481,7 +1524,8 @@ $tw.store = {};
 	$tw.store.getTiddlersByField = function(field,value) {
 		var result = [];
 		for(var t in tiddlers) {
-			if(field in tiddlers[t] && tiddlers[t][field] === value)
+			var f = tiddlers[t].getFields();
+			if(field in f && f[field] === value)
 				result.push(tiddlers[t]);
 		}
 		return result;
@@ -1585,16 +1629,16 @@ $tw.serialisers.html = {
 		var modified = $(elem).children(".tw_modified").eq(0).attr("title");
 		var html = $(elem).children(".tw_body").clone();
 		var text = html.html();
-		var tag = [];
+		var tags = [];
 		$(elem).find(".tw_tags a[rel='tag']").each(function(i) {
-			tag.push($(this).text());
+			tags.push($(this).text());
 		});
 		$(elem).remove();
 		return {
 			title: title,
 			revision: revision,
 			text: text,
-			tag: tag,
+			tags: tags,
 			type: "text/html",
 			format: "html"
 		}; 
@@ -1617,7 +1661,7 @@ $tw.serialisers.mhtml = {
 	
 	var startMarker = "Content-Type: multipart/related; boundary=\"_tw_mhtml_tiddler\"";
 	var boundaryMarker = "--_tw_mhtml_tiddler";
-	var boundaryMarker_SGML = "_tw_mhtml_tiddler"; // SGMLesque browsers like Opera drops the "--" out of comment nodes (see opening paras of http://www.howtocreate.co.uk/SGMLComments.html)
+	var boundaryMarker_SGML = "_tw_mhtml_tiddler"; // SGMLesque browsers like Opera drop the "--" out of comment nodes (see opening paras of http://www.howtocreate.co.uk/SGMLComments.html)
 
 	$tw.serialisers.mhtml.loadTiddler = function(elem) {
 		var comment = elem.data; // TODO: allow for >64K by reading chunks with elem.substringData(offset,length)
@@ -1642,6 +1686,8 @@ $tw.serialisers.mhtml = {
 		if(parts.length < 2)
 		 	return false;
 		var fields = $tw.utils.parseFields(parts[0]);
+		if(!("Content-Location" in fields))
+			return false;
 		fields.title = fields["Content-Location"];
 		fields.text = $.trim(parts[1]);
 		fields.type = fields["Content-Type"] ? fields["Content-Type"] : "image/png";
@@ -1702,7 +1748,6 @@ $tw.serialisers.javascript = {
 		endFields = endFields == -1 ? text.length : endFields;
 		var fields = $tw.utils.parseFields(text.substring(startMarker.length,endFields-1));
 		fields.text = text.substring(endFields+2);
-		$tw.utils.addField(fields,"tag","$plugin");
 		$.extend(fields,{type: "text/javascript", format: "javascript"});
 		return fields;
 	};
@@ -1732,7 +1777,6 @@ $tw.serialisers.stylesheet = {
 		endFields = endFields == -1 ? text.length : endFields;
 		var fields = $tw.utils.parseFields(text.substring(startMarker.length,endFields-1));
 		fields.text = text.substring(endFields+2);
-		$tw.utils.addField(fields,"tag","$plugin");
 		$.extend(fields,{type: "text/css", format: "stylesheet", storage: $(elem)});
 		return fields;
 	};
@@ -1752,7 +1796,7 @@ $tw.toolbar = {};
 	$tw.toolbar.create = function(selector,className) {
 		var toolbarWrapper = $("<div/>").addClass(className);
 		var toolbar = $("<div/>").addClass("tw_bar").appendTo(toolbarWrapper);
-		$tw(selector).display({
+		$tw(selector).render({
 			displayPoint: toolbar
 			});
 		return toolbarWrapper;
@@ -1797,7 +1841,7 @@ $tw.display = {};
 
 	// Open a tiddler through a given template, optionally in edit mode. If the tiddler is already displayed,
 	// it is only re-rendered if the template or editMode do not match
-	$tw.display.openTiddler = function(tiddler,options) {
+	$tw.display.navigateTiddler = function(tiddler,options) {
 		var defaults = {
 			templateTitle: "$tw.templates.tiddler.default",
 			template: null,
@@ -2049,16 +2093,17 @@ $tw.macros.view = {
 		var className = p[2];
 		var tiddlerFrame = elemMacro.closest(".tw_tiddlerFrame");
 		editMode = tiddlerFrame ? tiddlerFrame.hasClass("tw_editMode") : false;
-		if(field in tiddler) {
+		var fields = tiddler.getFields();
+		if(field in fields) {
 			switch(fmt) {
 				case "text":
-					elemMacro.text(tiddler[field]);
+					elemMacro.text(fields[field]);
 					break;
 				case "html":
 					if(field === "text") {
 						elemMacro.html(tiddler.toHtml());
 					} else {
-						elemMacro.html(tiddler[field]);
+						elemMacro.html(fields[field]);
 					}
 					if(editMode) {
 						var toolbar = $tw.toolbar.create("#$tw.toolbar.edit");
@@ -2141,7 +2186,7 @@ $tw.actions = {};
 		if(elemTiddler) {
 			var title = elemTiddler.attr("data-tw-tiddler-title");
 			var editMode = elemTiddler.hasClass("tw_editMode");
-			$tw(title).open({jOrigin: target, editMode: !editMode});
+			$tw(title).navigate({jOrigin: target, editMode: !editMode});
 		}
 	};
 
@@ -2152,7 +2197,7 @@ $tw.actions = {};
 			var tiddler = $tw.store.getTiddler(title);
 			var popupWrapper = $("<div/>").addClass("tw_popupWrapper");
 			var popup = $("<div/>").addClass("tw_popup").appendTo(popupWrapper);
-			$tw.utils.renderArray(tiddler.getFields(),["text"]).appendTo(popup);
+			$tw.utils.renderObject(tiddler.getFields(),["text"]).appendTo(popup);
 			target.before(popupWrapper);
 			popupWrapper.show();
 			popup.hide().show("slide",{direction: "up", easing: "easeOutBounce"});
@@ -2271,7 +2316,7 @@ $tw.macros.link = {};
 
 	$(".tw_macro[data-tw-macro='link']").live("click",function(e) {
 		var target = $(this).attr("data-tw-params");
-		$tw(target).open({jOrigin: this, editMode: e.shiftKey});
+		$tw(target).navigate({jOrigin: this, editMode: e.shiftKey});
 		return false;
 	});
 	
@@ -2290,7 +2335,8 @@ $tw.macros.list = {};
 	$tw.macros.list.execute = function(params,elemMacro,container,tiddler) {
 		var wrapper = $("<ul/>").addClass("tw_tiddlerList").appendTo(elemMacro);
 		$tw("*").each(function(i) {
-			var link = $tw.macros.link.create($tw.store.getTiddler(this.title),tiddler);
+			$tw.log(this);
+			var link = $tw.macros.link.create(this,tiddler);
 			var listItem = $("<li/>").addClass("tw_tiddlerListItem").append(link).appendTo(wrapper);
 		});
 		
@@ -2448,19 +2494,21 @@ $tw.startup = {
 
 (function() {
 	
+	$tw.log("Startup starting");
+	
 	$(".tw_tiddler").hide();
 	$tw.storage.loadContent();
 	$tw.store.debug();
 	
 	// Remove static styles
-	$($tw("$tw.styles.static").eq(0)["storage"]).remove();
+	$($tw("$tw.styles.static").eq(0).getFields().storage).remove();
 
-	$tw("$tw.templates.page.default").display();
-	$tw("Credits").open({editMode: false});
-	$tw("TechnicalDocumentation").open({editMode: false});
-	$tw("Improvements").open({editMode: false});
-	$tw("TiddlyWiki5").open({editMode: false});
-	$tw("HelloThere").open({editMode: false});
+	$tw("$tw.templates.page.default").render();
+	$tw("Credits").navigate({editMode: false});
+	$tw("TechnicalDocumentation").navigate({editMode: false});
+	$tw("Improvements").navigate({editMode: false});
+	$tw("TiddlyWiki5").navigate({editMode: false});
+	$tw("HelloThere").navigate({editMode: false});
 	
 	$(document).keyup(function() {$tw.toolbar.updateToolbarButtonStates();});
 	$(document).mousedown(function() {$tw.toolbar.updateToolbarButtonStates();});
@@ -2484,6 +2532,8 @@ $tw.startup = {
 		$tw.startup.editToolbar.hide(400);
 	});
 	*/
+	
+	$tw.log("Startup ending");
 
 })();
 
