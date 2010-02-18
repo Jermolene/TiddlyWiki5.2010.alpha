@@ -206,7 +206,7 @@ h1, .tw_title {
 				<a href="#TiddlyWiki5" class="tw_macro" data-tw-macro="link" data-tw-params="TiddlyWiki5">TiddlyWiki5</a>, which will eventually become a modernised non-linear inter-personal web notebook. Right now this is not in a remotely usable state, it's here to help us build and improve it.
 			</p>
 			<p>
-				If you want to actually use TiddlyWiki, stick with the latest current version at <a href="http://www.tiddlywiki.com/">http://www.tiddlywiki.com/</a>. If you'd like to get involved in the development of TiddlyWiki5, join the Google group at <a href="http://groups.google.com/group/TiddlyWikiDev">http://groups.google.com/group/TiddlyWikiDev</a>.
+				If you want to actually use TiddlyWiki, stick with the latest current version at <a href="http://www.tiddlywiki.com/">http://www.tiddlywiki.com/</a>. If you'd like to get involved in the development of TiddlyWiki5, join the Google group at <a href="http://groups.google.com/group/TiddlyWikiDev">http://groups.google.com/group/TiddlyWikiDev</a> and follow development on GitHub at <a href="http://github.com/Jermolene/TiddlyWiki5">http://github.com/Jermolene/TiddlyWiki5</a>.
 			</p>
 			<p>
 				This is a very early sketch that's been tested on the latest versions of Safari, Chrome, Firefox, Opera, IE8 (although a bunch of stuff doesn't work there, obviously)
@@ -648,130 +648,6 @@ tag: documentation
 The goal is to support a form of intellectual discourse where each writer seeks to build their own universe of understanding, with loose, one-way links to those of other individuals. This allows each individual to be the king of their own domain, in the sense that they can publish whatever they like, with no need to consult or worry about anyone else. And yet, they can make their contribution to the greater understanding of the group as a whole through the network of aggregated knowledge. Garrett Lisi's Deferential Geometry is a great example of what an individual TiddlyWiki might look like.
 </script>
 <script type="text/x-tiddler">
-title: FileLayout
-modifier: JeremyRuston
-modified: 2009-12-28T12:39:34Z
-type: text/x-markdown
-tag: notes
-tag: documentation
-
-TiddlyWiki5 is delivered as a single HTML file that contains both the tiddlers (text and other data) of the document, and the JavaScript code needed to provide the TiddlyWiki user interface.
-
-A TiddlyWiki5 file contains content designed to be processed in two ways:
-
-- Ordinary processing of HTML, CSS and JavaScript by the browser when the file is opened
-- Special processing by the TiddlyWiki5 core code to extract the tiddlers
-
-Tiddlers are encoded within the HTML file in a number of different formats:
-
-- HTML text in `<div>` tags ($tw.serialisers.html). This is the default format for content in TiddlyWiki5, and ensures that it is visible to search engines and other robots.
-- Text in `<sc**pt>` tags ($tw.serialisers.scriptTiddler). Tiddlers in this format are a bit easier than HTML to type in a text editor because you don't have to escape HTML characters like < and > (although `</sc**pt>` does need escaping). It also means that search engines won't look at the content, which can be helpful.
-- JavaScript code in `<sc**pt>` tags ($tw.serialisers.javascript)
-- CSS definitions in `<st*le>` tags ($tw.serialisers.stylesheet)
-- Special MHTML comments that can be used by Internet Explorer to base64 encode images ($tw.serialisers.mhtml)
-
-</script>
-<script type="text/x-tiddler">
-title: MacroProcessing
-modifier: JeremyRuston
-modified: 2009-12-28T12:39:34Z
-type: text/x-markdown
-tag: notes
-tag: documentation
-
-A macro is a piece of special markup that introduces dynamic content into TiddlyWiki. A single macro can be applied to an HTML element by adding the class `tw_macro` and the custom attribute `data-tw-macro` containing the name of the macro. Most macros require additional information in custom attributes (notably `data-tw-params`) or in sub-elements of the macro node.
-
-A static version of the output of a macro can be "baked-in" to the HTML representation of content. This static representation is ignored when the tiddler is imported into the store. The static representation is marked with the `tw_macroOutput` class. It can be applied to the same element as `tw_macro` to mark all the child nodes of the macro as static output, or it can be applied to any number of immediate child elements of the element marked `tw_macro` to mark just the children of those nodes as static output. TOFIX - This means that you can't have macros as the child element of another macro 
-
-Macros are processed in several circumstances, leading to them having slightly different representations as stored in an HTML TiddlyWiki file, as strings in the JavaScript store, and as rendered to the display.
-
-- When HTML content is imported, to remove any static macro output. If the macro element, or any of its child elements, has the class `tw_macroOutput`, the content of that element is removed
-- When HTML content is rendered for viewing, the output of any macros is dynamically inserted by modifying the macro element and/or inserting fresh content, using the same `tw_macroOutput` convention to govern where it is inserted
-- When the tiddler store changes, the refresh mechanism is triggered and all displayed macros are given the chance to update themselves
-- When HTML content is rendered for editting, the macro itself is rendered as a proxy object that replaces the macro element. The proxy object can have interactive behaviours
-- When edits to HTML content are committed to the store, any macro proxy objects must be replaced by the macros proper representation
-
-The performance of the refresh process could be improved by several optimisations:
-
-- Before a macro is refreshed, it is given a `data-tw-macro-last-refresh-clock-time` attribute containing the current store clock time. When the macro is subsequently refreshed, processing is skipped if the current store clock time hasn't increased. If a macro needs to be refreshed even when the store hasn't changed, then it can reset the `data-tw-macro-last-refresh-clock-time` attribute to zero during refresh processing. Bah! The trouble here is that efficiency requires the clock time to be stored as a number, not a string. So perhaps we should use a jQuery data() payload?
-- A macro handler can add hints, such as 'don't update unless tiddler Blah has moved beyond revision 19'
-- Could be done with a `$tw().signature()` method that returns a string that is unique to the current revisions of the selected tiddlers. During macro processing this string would be stored in an attribute, and a `$tw.isSignatureValid()` method later called to check whether the selected tiddlers have changed.
-
-An important macro is displayTiddler, which creates a tiddler frame (marked with the class "tw_tiddlerFrame") that displays a tiddler complete with a UI for editting, and switching between revisions.
-
-The $tw.display.openTiddler() method opens a tiddler. If it is already displayed in a frame, then that frame is reused. If a new frame is to be created, openTiddler looks for tiddler containers whose selectors match the tiddler to be displayed, and creates the new tiddler frame in the first container that accepts it.
-
-Various macros can be used to create a tiddler container (marked with the class "tw_tiddlerContainer"):
-
-- StoryContainer is like a conventional TiddlyWiki story column
-- SinglePageMode is closes the previous tiddler when a new one is opened
-- Cecily would also be a special container, with standard logic governing which links open in the canvas, and which in, say, an overlay frame, or a tooltip
-
-openTiddler should invoke a special method on the container macro when a tiddler is displayed/adjusted/removed. Then something like Cecily could be done as a special container, with standard logic governing which links open in the canvas, and which in, say, an overlay frame, or a tooltip. And single page mode just becomes a special container.
-
-Tooltips could be done as a nested container, as long as we take care in the traversal as we search for the right container. We need to search for the target container first as a child of the frame with the tiddler that contained the link that was clicked on, and then search up the DOM tree looking for containers that are siblings of the parent chain.
-
-</script>
-<script type="text/x-tiddler">
-title: TiddlerStorage
-modifier: JeremyRuston
-modified: 2009-12-28T12:39:34Z
-type: text/x-markdown
-tag: notes
-tag: documentation
-
-- Refresh mechanism would be much easier if it was asynchronous, then we just use a setTimeout(0,function) to trigger a refresh once all the synchronous processing has finished. Hmm might need a way to register tasks to be performed after all refreshes have been dispatched. For instance, switching from edit mode to view mode, (a) save modified tiddler (b) modify the DOM so that the tiddler is the husk of the tiddler in view mode and (c) process refreshes. In such situations there is a risk of seeing a flash of the display between (b) and (c) while waiting for the setTimeout to process. Maybe the answer is to defer (b) into the refresh handling, so there'd be a specific refresh marker for "switching from view to edit mode"
-- Maybe have a monotonic clock that is used to mark updates to the tiddlywiki, and record the current monotime along with a macro, and only refresh it if the store monotime has increased
-- Notifications are javascript callbacks invoked after tiddlers matching a filter have been created, modified or deleted
-- The refresh mechanism is a notification handler that kicks in when any tiddlers are modified. It involves navigating the DOM looking for elements that need to be updated in light of the change.
-- Clarify tiddler and storage object model, notification and refresh mechanism
- - Tiddler objects are immutable, like strings? So you modify them by assigning a new tiddler to the same title, thus creating a new revision.
-- Tiddler objects use getters and setters to enforce read-only access? (means IE8+ only) Perhaps fall back to properties, but can't enforce read-onlyness in IE6
- - Tiddler storage is done as a series of indexes into a set of Tiddler objects representing the revisions of each tiddler. There would be a title index, a user index, and a tag index. All these indexes would need to be maintained for insertions and deletions
- - How are tiddlers from other users handled?
-- Lazy loading model is to explicitly trigger server operations to return additional tiddlers (eg retrieving bag, recipe, or search). The results are added to the store asynchronously, relying on macros autorefreshing to update with the new content
-- Skinny tiddler handling can be reasonably explicit: the server decides when to bake skinny tiddlers into the TiddlyWiki. Ordinarily, the tiddler text reads as a string saying "Not loaded from server". There is a skinny flag, and a lazy loading method to trigger asking the server for the body text. NB A load of a skinny tiddler doesn't create a new revision, but the macro mechanism must still trigger an update
-</script>
-<script type="text/x-tiddler">
-title: TiddlyChaining
-modifier: JeremyRuston
-modified: 2009-12-28T12:39:34Z
-type: text/x-markdown
-tag: notes
-tag: documentation
-tag: programming
-
-The `$tw()` function is modelled on the jQuery `$()` function. It allows tiddlers to be selected by a variety of criteria, and then traversed and manipulated using an intuitive chaining syntax.
-
-`$tw(selector)` returns the collection of tiddlers matching a selector. Some examples are:
-
-- `$tw("name")` - selects the tiddler with the given name (will need to escape spaces and special characters)
-- `$tw("HelloThere:8")` - selects a particular revision of the named tiddler
-- `$tw("HelloThere:2009-12-07T11:32:43")` - selects the revision of a named tiddler that was active at a particular time
-- `$tw("[[name with spaces]]")` - selects the tiddler with the given long name, and only ]] needing escaping
-- `$tw("*")` - selects all available tiddlers
-- `$tw("#tag")` - selects all tiddlers with the specified tag
-- `$tw("@name")` - selects all tiddlers from the specified users
-- `$tw("[type[tiddlertype]]")` - selects all tiddlers that match the specified type
-- Selectors are cumulative when concatenated with whitespace:
- - `$tw("one two three four")` - four tiddlers named one, two, three and four
- - `$tw("@JoeBloggs @MaryBloggs")` - all tiddlers from the users JoeBloggs and MaryBloggs
-- Selectors are unioned when concatenated without whitespace:
- - `$tw("HelloThere@JoeBloggs")` - the tiddler named HelloThere from user JoeBloggs
- - `$tw("@JoeBloggs#notes")` - everything tagged notes by JoeBloggs
- - `$tw("@JoeBloggs[type[text/javascript]]")` - all JavaScript tiddlers from user JoeBloggs
-
-Methods can be applied to the tiddler collection to traverse and manipulate the tiddlers. For example:
-
-- `$tw("#myStuff").sortUp("modified")` - selects and sorts all tiddlers with a particular tag
-- `$tw("@JoeBloggs").sortDown("created")`
-- `$tw("#MyTag").filter("[created[today]]").lazyLoad()` - triggers lazy loading on all of todays tiddlers with a particular tag
-- `$tw("#stuff@JoeBloggs").remove("#notes")` - Remove all tiddlers from JoeBloggs that are tagged "stuff" and "notes"
-- `$tw(somefilter).tags()` - all the tags on the selected tiddlers
-- `$tw(somefilter).taggedBy()` - all the tiddlers tagged by the selected tiddlers
-
-</script>
-<script type="text/x-tiddler">
 title: CodingConventions
 revision: 1
 modifier: JeremyRuston
@@ -1048,6 +924,45 @@ description: CSS declarations for toolbars and buttons
 }
 
 </style>
+<script type="text/x-tiddler">
+title: TiddlyChaining
+modifier: JeremyRuston
+modified: 2009-12-28T12:39:34Z
+type: text/x-markdown
+tag: notes
+tag: documentation
+tag: programming
+
+The `$tw()` function is modelled on the jQuery `$()` function. It allows tiddlers to be selected by a variety of criteria, and then traversed and manipulated using an intuitive chaining syntax.
+
+`$tw(selector)` returns the collection of tiddlers matching a selector. Some examples are:
+
+- `$tw("name")` - selects the tiddler with the given name (will need to escape spaces and special characters)
+- `$tw("HelloThere:8")` - selects a particular revision of the named tiddler
+- `$tw("HelloThere:2009-12-07T11:32:43")` - selects the revision of a named tiddler that was active at a particular time
+- `$tw("[[name with spaces]]")` - selects the tiddler with the given long name, and only ]] needing escaping
+- `$tw("*")` - selects all available tiddlers
+- `$tw("#tag")` - selects all tiddlers with the specified tag
+- `$tw("@name")` - selects all tiddlers from the specified users
+- `$tw("[type[tiddlertype]]")` - selects all tiddlers that match the specified type
+- Selectors are cumulative when concatenated with whitespace:
+ - `$tw("one two three four")` - four tiddlers named one, two, three and four
+ - `$tw("@JoeBloggs @MaryBloggs")` - all tiddlers from the users JoeBloggs and MaryBloggs
+- Selectors are unioned when concatenated without whitespace:
+ - `$tw("HelloThere@JoeBloggs")` - the tiddler named HelloThere from user JoeBloggs
+ - `$tw("@JoeBloggs#notes")` - everything tagged notes by JoeBloggs
+ - `$tw("@JoeBloggs[type[text/javascript]]")` - all JavaScript tiddlers from user JoeBloggs
+
+Methods can be applied to the tiddler collection to traverse and manipulate the tiddlers. For example:
+
+- `$tw("#myStuff").sortUp("modified")` - selects and sorts all tiddlers with a particular tag
+- `$tw("@JoeBloggs").sortDown("created")`
+- `$tw("#MyTag").filter("[created[today]]").lazyLoad()` - triggers lazy loading on all of todays tiddlers with a particular tag
+- `$tw("#stuff@JoeBloggs").remove("#notes")` - Remove all tiddlers from JoeBloggs that are tagged "stuff" and "notes"
+- `$tw(somefilter).tags()` - all the tags on the selected tiddlers
+- `$tw(somefilter).taggedBy()` - all the tiddlers tagged by the selected tiddlers
+
+</script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
 title: $tw
@@ -1310,6 +1225,26 @@ description: Shim for standard XML apis on Internet Explorer
 })();
 
 </script>
+<script type="text/x-tiddler">
+title: TiddlerStorage
+modifier: JeremyRuston
+modified: 2009-12-28T12:39:34Z
+type: text/x-markdown
+tag: notes
+tag: documentation
+
+- Refresh mechanism would be much easier if it was asynchronous, then we just use a setTimeout(0,function) to trigger a refresh once all the synchronous processing has finished. Hmm might need a way to register tasks to be performed after all refreshes have been dispatched. For instance, switching from edit mode to view mode, (a) save modified tiddler (b) modify the DOM so that the tiddler is the husk of the tiddler in view mode and (c) process refreshes. In such situations there is a risk of seeing a flash of the display between (b) and (c) while waiting for the setTimeout to process. Maybe the answer is to defer (b) into the refresh handling, so there'd be a specific refresh marker for "switching from view to edit mode"
+- Maybe have a monotonic clock that is used to mark updates to the tiddlywiki, and record the current monotime along with a macro, and only refresh it if the store monotime has increased
+- Notifications are javascript callbacks invoked after tiddlers matching a filter have been created, modified or deleted
+- The refresh mechanism is a notification handler that kicks in when any tiddlers are modified. It involves navigating the DOM looking for elements that need to be updated in light of the change.
+- Clarify tiddler and storage object model, notification and refresh mechanism
+ - Tiddler objects are immutable, like strings? So you modify them by assigning a new tiddler to the same title, thus creating a new revision.
+- Tiddler objects use getters and setters to enforce read-only access? (means IE8+ only) Perhaps fall back to properties, but can't enforce read-onlyness in IE6
+ - Tiddler storage is done as a series of indexes into a set of Tiddler objects representing the revisions of each tiddler. There would be a title index, a user index, and a tag index. All these indexes would need to be maintained for insertions and deletions
+ - How are tiddlers from other users handled?
+- Lazy loading model is to explicitly trigger server operations to return additional tiddlers (eg retrieving bag, recipe, or search). The results are added to the store asynchronously, relying on macros autorefreshing to update with the new content
+- Skinny tiddler handling can be reasonably explicit: the server decides when to bake skinny tiddlers into the TiddlyWiki. Ordinarily, the tiddler text reads as a string saying "Not loaded from server". There is a skinny flag, and a lazy loading method to trigger asking the server for the body text. NB A load of a skinny tiddler doesn't create a new revision, but the macro mechanism must still trigger an update
+</script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
 title: $tw.TiddlerRevision
@@ -1544,6 +1479,30 @@ $tw.store = {};
 	
 })();
 	
+</script>
+<script type="text/x-tiddler">
+title: FileLayout
+modifier: JeremyRuston
+modified: 2009-12-28T12:39:34Z
+type: text/x-markdown
+tag: notes
+tag: documentation
+
+TiddlyWiki5 is delivered as a single HTML file that contains both the tiddlers (text and other data) of the document, and the JavaScript code needed to provide the TiddlyWiki user interface.
+
+A TiddlyWiki5 file contains content designed to be processed in two ways:
+
+- Ordinary processing of HTML, CSS and JavaScript by the browser when the file is opened
+- Special processing by the TiddlyWiki5 core code to extract the tiddlers
+
+Tiddlers are encoded within the HTML file in a number of different formats:
+
+- HTML text in `<div>` tags ($tw.serialisers.html). This is the default format for content in TiddlyWiki5, and ensures that it is visible to search engines and other robots.
+- Text in `<sc**pt>` tags ($tw.serialisers.scriptTiddler). Tiddlers in this format are a bit easier than HTML to type in a text editor because you don't have to escape HTML characters like < and > (although `</sc**pt>` does need escaping). It also means that search engines won't look at the content, which can be helpful.
+- JavaScript code in `<sc**pt>` tags ($tw.serialisers.javascript)
+- CSS definitions in `<st*le>` tags ($tw.serialisers.stylesheet)
+- Special MHTML comments that can be used by Internet Explorer to base64 encode images ($tw.serialisers.mhtml)
+
 </script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
@@ -1907,6 +1866,47 @@ $tw.display = {};
 
 })();
 	
+</script>
+<script type="text/x-tiddler">
+title: MacroProcessing
+modifier: JeremyRuston
+modified: 2009-12-28T12:39:34Z
+type: text/x-markdown
+tag: notes
+tag: documentation
+
+A macro is a piece of special markup that introduces dynamic content into TiddlyWiki. A single macro can be applied to an HTML element by adding the class `tw_macro` and the custom attribute `data-tw-macro` containing the name of the macro. Most macros require additional information in custom attributes (notably `data-tw-params`) or in sub-elements of the macro node.
+
+A static version of the output of a macro can be "baked-in" to the HTML representation of content. This static representation is ignored when the tiddler is imported into the store. The static representation is marked with the `tw_macroOutput` class. It can be applied to the same element as `tw_macro` to mark all the child nodes of the macro as static output, or it can be applied to any number of immediate child elements of the element marked `tw_macro` to mark just the children of those nodes as static output. TOFIX - This means that you can't have macros as the child element of another macro 
+
+Macros are processed in several circumstances, leading to them having slightly different representations as stored in an HTML TiddlyWiki file, as strings in the JavaScript store, and as rendered to the display.
+
+- When HTML content is imported, to remove any static macro output. If the macro element, or any of its child elements, has the class `tw_macroOutput`, the content of that element is removed
+- When HTML content is rendered for viewing, the output of any macros is dynamically inserted by modifying the macro element and/or inserting fresh content, using the same `tw_macroOutput` convention to govern where it is inserted
+- When the tiddler store changes, the refresh mechanism is triggered and all displayed macros are given the chance to update themselves
+- When HTML content is rendered for editting, the macro itself is rendered as a proxy object that replaces the macro element. The proxy object can have interactive behaviours
+- When edits to HTML content are committed to the store, any macro proxy objects must be replaced by the macros proper representation
+
+The performance of the refresh process could be improved by several optimisations:
+
+- Before a macro is refreshed, it is given a `data-tw-macro-last-refresh-clock-time` attribute containing the current store clock time. When the macro is subsequently refreshed, processing is skipped if the current store clock time hasn't increased. If a macro needs to be refreshed even when the store hasn't changed, then it can reset the `data-tw-macro-last-refresh-clock-time` attribute to zero during refresh processing. Bah! The trouble here is that efficiency requires the clock time to be stored as a number, not a string. So perhaps we should use a jQuery data() payload?
+- A macro handler can add hints, such as 'don't update unless tiddler Blah has moved beyond revision 19'
+- Could be done with a `$tw().signature()` method that returns a string that is unique to the current revisions of the selected tiddlers. During macro processing this string would be stored in an attribute, and a `$tw.isSignatureValid()` method later called to check whether the selected tiddlers have changed.
+
+An important macro is displayTiddler, which creates a tiddler frame (marked with the class "tw_tiddlerFrame") that displays a tiddler complete with a UI for editting, and switching between revisions.
+
+The $tw.display.openTiddler() method opens a tiddler. If it is already displayed in a frame, then that frame is reused. If a new frame is to be created, openTiddler looks for tiddler containers whose selectors match the tiddler to be displayed, and creates the new tiddler frame in the first container that accepts it.
+
+Various macros can be used to create a tiddler container (marked with the class "tw_tiddlerContainer"):
+
+- StoryContainer is like a conventional TiddlyWiki story column
+- SinglePageMode is closes the previous tiddler when a new one is opened
+- Cecily would also be a special container, with standard logic governing which links open in the canvas, and which in, say, an overlay frame, or a tooltip
+
+openTiddler should invoke a special method on the container macro when a tiddler is displayed/adjusted/removed. Then something like Cecily could be done as a special container, with standard logic governing which links open in the canvas, and which in, say, an overlay frame, or a tooltip. And single page mode just becomes a special container.
+
+Tooltips could be done as a nested container, as long as we take care in the traversal as we search for the right container. We need to search for the target container first as a child of the frame with the tiddler that contained the link that was clicked on, and then search up the DOM tree looking for containers that are siblings of the parent chain.
+
 </script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
