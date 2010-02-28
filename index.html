@@ -173,15 +173,15 @@ h1, .tw_title {
 			It's status is that it's just a prototype, and it's not in a fit state to be used in anger; I've focussed on the things missing or broken in the original TiddlyWiki, and not paid too much attention to areas that don't need to change much. So, it's not currently structured as a single file, nor is it capable of saving changes. However, it does demonstrate some key new features and capabilities. There are three areas I'd like to focus on:
 			</p>
 			<p>
-			- Embracing HTML
+			<strong>Embracing HTML</strong>
 			By default, tiddlers are stored and edited as HTML. This means that you get a proper WYSIWYG editor, and that when Google looks at a TiddlyWiki5 file it will also see the content properly. It's been clear for a long time that wikitext is both a strength and a weakness of classic TW, it gives users great power, but it's incredibly off-putting for people who expect to type ctrl-B for bold. My goal in bringing WYSIWYG to TiddlyWiki is to maintain the ability to type macros and formatting directly, without going into weird sub-dialogs. This is because I believe that the real power of wikis is the way that they elevate linking to becoming part of the punctuation, and hence the writing process, instead of an operation performed afterwards. Anyhow, it's not all implemented yet, but in edit mode macros are represented as special "proxy" visual objects that can have custom interactions, but can be selected/copied/pasted just as if they were a single character of text.
 			</p>
 			<p>
-			- Graphics as First Class Citizen
+			<strong>Graphics as First Class Citizen</strong>
 			Both bitmap and vector graphics are now a first class citizen, with image tiddlers embedded directly in the TiddlyWiki file, even in IE6. There's support for SVG vector graphics (with a plan to cross-render to VML for IE support). The idea is to be able to associate icons with tiddlers (and hence tags), and use the icons to represent those tiddlers in the UI. My mum is busy creating a library of a few hundred little conceptual graphics to ship with the thing.
 			</p>
 			<p>
-			- Cleaning up
+			<strong>Cleaning up</strong>
 			But the real benefit is that the design is now much smoother top to bottom. TiddlyWiki originally evolved in fits and starts, and bears the scar tissues of me learning JavaScript as I went. In TiddlyWiki5, for instance, almost everything is a macro, including tiddler containers (aka a TiddlyWiki "story"), and tiddler frames. It uses jQuery and jQuery UI properly, leading to much more concise and clear code. It properly matches the capabilities of TiddlyWeb, with revision history retained for each tiddler and support for different MIME-types.
 			</p>
 			<p>
@@ -222,6 +222,8 @@ h1, .tw_title {
 				<a href="#Lorem" class="tw_macro" data-tw-macro="link" data-tw-params="Lorem">Lorem</a>
 				<br>
 				<a href="#Contents" class="tw_macro" data-tw-macro="link" data-tw-params="Contents">Contents</a>
+				<br>
+				<a href="#Clock" class="tw_macro" data-tw-macro="link" data-tw-params="Clock">Clock</a>
 				<br>
 				<a href="#$tw.templates.tiddler.default" class="tw_macro" data-tw-macro="link" data-tw-params="$tw.templates.tiddler.default">$tw.templates.tiddler.default</a>
 				<br>
@@ -289,7 +291,7 @@ h1, .tw_title {
 		</div>
 	</div>
 	<div class="tw_tiddler">
-		<div class="tw_revision">0</div>
+		<div class="tw_revision">1</div>
 		<h1 class="tw_title">MainToolbar</h1>
 		<div class="tw_tags">
 			<a href="#$tw.toolbar.main" rel="tag">$tw.toolbar.main</a>
@@ -299,13 +301,12 @@ h1, .tw_title {
 		</div>
 	</div>
 	<div class="tw_tiddler" id="MainToolbar">
-		<div class="tw_revision">1</div>
+		<div class="tw_revision">2</div>
 		<h1 class="tw_title">MainToolbar</h1>
 		<div class="tw_tags">
 			<a href="#$tw.toolbar.main" rel="tag">$tw.toolbar.main</a>
 		</div>
 		<div class="tw_body">
-		
 			<a href="#" class="tw_macro" data-tw-macro="command" data-tw-params="home"><span class="tw_macro tw_macroOutput" data-tw-macro="image" data-tw-params="HomeImage"></span></a>
 			<a href="#" class="tw_macro" data-tw-macro="command" data-tw-params="close_tiddler"><span class="tw_macro tw_macroOutput" data-tw-macro="image" data-tw-params="$tw.images.plus"></span></a>
 			<a href="#" class="tw_macro" data-tw-macro="command" data-tw-params="close_tiddler"><span class="tw_macro tw_macroOutput" data-tw-macro="image" data-tw-params="$tw.images.search"></span></a>
@@ -338,7 +339,6 @@ h1, .tw_title {
 		</div>
 	</div>
 </body>
-</html>
 <script type="text/x-tiddler">
 title: $tw.templates.page.default
 revision: 0
@@ -665,7 +665,7 @@ tag: documentation
 title: $tw.externals.json2
 */
 </script>
-<script type="text/javascript" src="jquery-1.4.1.js">
+<script type="text/javascript" src="jquery-1.4.2.js">
 /*tiddlywiki-plugin*
 title: $tw.externals.jQuery
 */
@@ -1254,7 +1254,22 @@ description: Object representing an immutable revision of a tiddler
 /*
 A TiddlerRevision object is an immutable collection of fields representing a particular revision
 of a particular tiddler in storage. TiddlerRevision objects cannot be modified, instead a new
-revision of the same tiddler is created in storage.
+revision of the same tiddler is created in storage. (There are subtle exceptions to support lazy loading which are discussed below)
+
+TiddlerRevision objects are created during parsing of the TiddlyWiki source file, in response to user edits, and asychronously to track changes on a server.
+
+TiddlerRevisions can contain arbitrary fields, but TiddlyWiki has special conventions for certain fields:
+
+title - string
+tags - array of strings
+text - string or function, see below
+_* - any field starting with an underscore is not serialised (and therefore won't get saved or synced to a server)
+
+To support lazy loading, the text field supports a convention whereby it can be specified as a function instead of a string. The first time the text of the tiddler needs to be accessed, the function is invoked and the return value is used as the value of the text field. This mechanism allows synchronous lazy loading, which is used to defer loading of HTML tiddlers until they are needed.
+
+To support asynchronous lazy loading, where a server must be consulted to retrieve the text of the tiddler, the text() function should trigger the loading of the tiddler from the remote server, and return text indicating that the tiddler is being retrieved from the server. When the remote request returns, the update to the tiddler must be delivered through $tw.store to ensure that updates are triggered.
+
+The global function $tw.TiddlerRevision.getText() retrieves the text of the tiddler revision, handling the situation where the text field has been specified as a function. It also stores the resulting string directly in the TiddlerRevision's text field for subsequent access.
 
 TODO: Although the immutability of TiddlerRevision objects can't be enforced on all browsers, it
 may be worth adding property setters that do so for HTML5 browsers
@@ -1262,6 +1277,13 @@ may be worth adding property setters that do so for HTML5 browsers
 
 $tw.TiddlerRevision = function(fields) {
 	$.extend(true,this,fields);
+};
+
+$tw.TiddlerRevision.getText = function(tiddlerRevision) {
+	if(typeof tiddlerRevision.text === "function") {
+		tiddlerRevision.text = tiddlerRevision.text();
+	}
+	return tiddlerRevision.text;
 };
 
 </script>
@@ -1273,6 +1295,15 @@ description: Object representing a Tiddler
 
 /*
 A Tiddler object is an indexed collection of tiddler revisions
+
+Tiddler objects allow for direct access to the following fields:
+- title - eg myTiddler.title
+- tags - eg myTiddler.tags.length
+- type
+
+To access the text of a tiddler, use the myTiddler.getText() method. To obtain all of the fields of a tiddler, use the myTiddler.getFields() method (the text field will only be included if it previously been requested with myTiddler.getText())
+
+
 */
 
 // Create a Tiddler object:
@@ -1310,31 +1341,33 @@ $tw.Tiddler.prototype.addRevision = function(/* arguments */) {
 			this.revisions[baseIndex++] = revision;
 		}
 	}
-	this.cacheCurrentFields();
-	return this.currentRevision;
-};
-
-$tw.Tiddler.prototype.cacheCurrentFields = function() {
-	var fields = this.currentRevision > 0 ? this.revisions[this.currentRevision] : undefined;
-	if(fields) {
-		this.title = fields.title;
-		this.text = fields.text;
-		this.tags = fields.tags;
-		this.type = fields.type;
+	// Cache the title of the current revision
+	revision = this.currentRevision > 0 ? this.revisions[this.currentRevision] : undefined;
+	if(revision) {
+		this.title = revision.title;
+		this.tags = revision.tags;
+		this.type = revision.type;
 	}
+	return this.currentRevision;
 };
 
 $tw.Tiddler.prototype.currentRevision = function() {
 	return this.currentRevision;
 };
 
+$tw.Tiddler.prototype.getText = function() {
+	var revision = this.currentRevision > 0 ? this.revisions[this.currentRevision] : undefined;
+	return revision ? $tw.TiddlerRevision.getText(revision) : undefined;
+}
+
 $tw.Tiddler.prototype.getFields = function() {
-	return this.currentRevision > 0 ? this.revisions[this.currentRevision] : undefined;
+	var revision = this.currentRevision > 0 ? this.revisions[this.currentRevision] : undefined;
+	return revision;
 };
 
 $tw.Tiddler.prototype.toHtml = function() {
 	var html;
-	var text = this.text;
+	var text = this.getText();
 	if(text !== undefined && $.trim(text) !== "") {
 		switch(this.type) {
 			case "text/html":
@@ -1402,11 +1435,14 @@ $tw.store = {};
 	
 	var locked = false; // Store is locked while notification callbacks are processed
 	
+	// Add a new notification handler {callback: function, selector: selector}
 	$tw.store.addNotification = function(notification) {
 		notificationCallbacks.push(notification);
 	}
 	
+	// Queues up any notifications triggered by a particular tiddler
 	$tw.store.registerModification = function(tiddler) {
+		// Set up the timeout to actually send the notifications
 		if(!notificationTimer) {
 			triggeredNotifications = [];
 			untriggeredNotifications = notificationCallbacks.slice(); // Make a shallow copy of the notifications
@@ -1414,7 +1450,7 @@ $tw.store = {};
 		}
 		for(var t=untriggeredNotifications.length-1; t>=0; t--) {
 			var n = untriggeredNotifications[t];
-			if(true) { // TODO: if($tw(tiddler).filter(n.selector)) {
+			if($tw(tiddler).filter(n.selector).length == 1) {
 				triggeredNotifications.push(n);
 				untriggeredNotifications = $tw.utils.arrayRemove(untriggeredNotifications,t,t+1)
 			}
@@ -1423,6 +1459,7 @@ $tw.store = {};
 	
 	$tw.store.sendNotifications = function() {
 		notificationTimer = null;
+		// TODO: Rather than locking the entire store, we should handle updates during notification processing
 		locked = true;
 		for(var t=triggeredNotifications.length-1; t>=0; t--) {
 			var n = triggeredNotifications[t];
@@ -1431,12 +1468,38 @@ $tw.store = {};
 		locked = false;
 	};
 	
-	$tw.store.addTiddler = function(fields) {
-		var tiddler = new $tw.Tiddler(fields);
-		if("title" in tiddler) {
-			tiddlers[tiddler.title] = tiddler;
+	// Put a tiddler to the store. It will be added as a new revision if the tiddler already exists. If a
+	// revision number is specified then the tiddler is added at that revision.
+	// Returns the $tw.Tiddler object if successful, or null if it failed
+	$tw.store.storeTiddler = function(fields) {
+		// Get the title and revision
+		if(!"title" in fields)
+			return null;
+		var title = fields.title;
+		if(title === "")
+			return null;
+		var revision = Number(fields.revision);
+		// Check if the tiddler exists
+		var tiddler = tiddlers[title];
+		if(tiddler) {
+			// Add a new revision to the existing tiddler
+			if(revision > 0) {
+			 	tiddler.addRevision(revision,fields);
+			} else {
+				tiddler.addRevision(fields);
+			}
+			$tw.store.registerModification(tiddler);
+		} else {
+			// Create a new tiddler
+			if(revision > 0) {
+			 	tiddler = new $tw.Tiddler(revision,fields);
+			} else {
+				 tiddler = new $tw.Tiddler(fields);
+			}
+			tiddlers[title] = tiddler;
 			$tw.store.registerModification(tiddler);
 		}
+		return tiddler;
 	};
 	
 	$tw.store.getAllTiddlers = function() {
@@ -1501,7 +1564,7 @@ Tiddlers are encoded within the HTML file in a number of different formats:
 - Text in `<sc**pt>` tags ($tw.serialisers.scriptTiddler). Tiddlers in this format are a bit easier than HTML to type in a text editor because you don't have to escape HTML characters like < and > (although `</sc**pt>` does need escaping). It also means that search engines won't look at the content, which can be helpful.
 - JavaScript code in `<sc**pt>` tags ($tw.serialisers.javascript)
 - CSS definitions in `<st*le>` tags ($tw.serialisers.stylesheet)
-- Special MHTML comments that can be used by Internet Explorer to base64 encode images ($tw.serialisers.mhtml)
+- Special MHTML comments that can be used by Internet Explorer to render base64 encode images ($tw.serialisers.mhtml)
 
 </script>
 <script type="text/javascript">
@@ -1520,7 +1583,7 @@ $tw.serialisers = {};
 			steps: []
 		};
 		$tw.storage.loadContentFromChildren(null,recipe.steps);
-		$tw.store.addTiddler({
+		$tw.store.storeTiddler({
 			title: "$tw.recipes.default",
 			type: "text/json",
 			text: JSON.stringify(recipe,null,4)
@@ -1557,7 +1620,7 @@ $tw.serialisers = {};
 							format: tiddler.format,
 							type: tiddler.type
 						});
-						$tw.store.addTiddler(tiddler);
+						$tw.store.storeTiddler(tiddler);
 					}
 				}
 			}
@@ -1587,7 +1650,7 @@ $tw.serialisers.html = {
 		var created = $(elem).children(".tw_created").eq(0).attr("title");
 		var modified = $(elem).children(".tw_modified").eq(0).attr("title");
 		var html = $(elem).children(".tw_body").clone();
-		var text = html.html();
+		var text = function() {return html.html()};
 		var tags = [];
 		$(elem).find(".tw_tags a[rel='tag']").each(function(i) {
 			tags.push($(this).text());
@@ -1736,7 +1799,7 @@ $tw.serialisers.stylesheet = {
 		endFields = endFields == -1 ? text.length : endFields;
 		var fields = $tw.utils.parseFields(text.substring(startMarker.length,endFields-1));
 		fields.text = text.substring(endFields+2);
-		$.extend(fields,{type: "text/css", format: "stylesheet", storage: $(elem)});
+		$.extend(fields,{type: "text/css", format: "stylesheet", _storage: $(elem)});
 		return fields;
 	};
 
@@ -1861,7 +1924,7 @@ $tw.display = {};
 	};
 	
 	$tw.display.refresh = function() {
-		$tw.macro.processMacrosViewMode();
+		$tw.macro.processMacrosViewMode($(document).children());
 	};
 
 })();
@@ -2335,7 +2398,6 @@ $tw.macros.list = {};
 	$tw.macros.list.execute = function(params,elemMacro,container,tiddler) {
 		var wrapper = $("<ul/>").addClass("tw_tiddlerList").appendTo(elemMacro);
 		$tw("*").each(function(i) {
-			$tw.log(this);
 			var link = $tw.macros.link.create(this,tiddler);
 			var listItem = $("<li/>").addClass("tw_tiddlerListItem").append(link).appendTo(wrapper);
 		});
@@ -2359,7 +2421,7 @@ $tw.image = {};
 		switch(tiddler.type) {
 			case "image/svg+xml": // General SVG image
 				if(document.importNode) { // Check for IE
-					var svgDoc = new DOMParser().parseFromString(tiddler.text, "application/xml").documentElement;
+					var svgDoc = new DOMParser().parseFromString(tiddler.getText(), "application/xml").documentElement;
 					$tw.image.fixSVG(svgDoc.childNodes,$tw.image.generateIdPrefix());
 					img = $(document.importNode(svgDoc, true));
 				} else {
@@ -2371,7 +2433,7 @@ $tw.image = {};
 				if($.browser.msie && $.browser.version.substring(0,1) < 8) {
 					img.attr("src","mhtml:!" + tiddler.title);
 				} else {
-					img.attr("src","data:" + tiddler.type + ";base64," + tiddler.text);
+					img.attr("src","data:" + tiddler.type + ";base64," + tiddler.getText());
 				}
 				break;
 		}
@@ -2380,11 +2442,11 @@ $tw.image = {};
 	
 	$tw.image.renderThroughTemplate = function(tiddler,template) {
 		// Get the template SVG document, fix it up, and import it into the main document
-		var svgTemplate = new DOMParser().parseFromString(template.text, "application/xml").documentElement;
+		var svgTemplate = new DOMParser().parseFromString(template.getText(), "application/xml").documentElement;
 		$tw.image.fixSVG(svgTemplate.childNodes,$tw.image.generateIdPrefix());
 		svgTemplate = document.importNode(svgTemplate, true);
 		// Get the image SVG
-		var svgImage = new DOMParser().parseFromString(tiddler.text, "application/xml").documentElement;
+		var svgImage = new DOMParser().parseFromString(tiddler.getText(), "application/xml").documentElement;
 		// Process SVG template commands
 		$tw.image.processTemplate(svgTemplate.childNodes,svgImage);
 		return $(svgTemplate);
@@ -2484,6 +2546,26 @@ $tw.converters.markdown = {
 </script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
+title: $tw.test.clockTiddler
+description: Simple plugin that updates the tiddler "Clock" every second with the current time and date
+*/
+
+(function() {
+	
+	// Only trigger the update timer if the text of the tiddler is requested
+	$tw.store.storeTiddler({title: "Clock", text: function (){
+		var getDate = function() {return (new Date()).toString()};
+		window.setInterval(function() {
+			$tw.store.storeTiddler({title: "Clock", text: getDate()});
+		}, 1*1000);
+		return getDate();
+	}});
+	
+})();
+
+</script>
+<script type="text/javascript">
+/*tiddlywiki-plugin*
 title: $tw.startup
 */
 
@@ -2501,7 +2583,7 @@ $tw.startup = {
 	$tw.store.debug();
 	
 	// Remove static styles
-	$($tw("$tw.styles.static").eq(0).getFields().storage).remove();
+	$($tw("$tw.styles.static").eq(0).getFields()._storage).remove();
 
 	$tw("$tw.templates.page.default").render();
 	$tw("Credits").navigate({editMode: false});
@@ -2514,25 +2596,8 @@ $tw.startup = {
 	$(document).mousedown(function() {$tw.toolbar.updateToolbarButtonStates();});
 	$(document).mouseup(function() {$tw.toolbar.updateToolbarButtonStates();});
 	
-	$tw.store.addNotification({callback: $tw.display.refresh});
-	
-	/*
-	window.setInterval(function() {
-		var t = $tw.store.getTiddler("ToDo");
-		t.text = (new Date()).toString() + "\n" + t.text;
-		$tw.store.addTiddler(t);
-	},10000);
-	*/
+	$tw.store.addNotification({callback: $tw.display.refresh, selector: "*"});
 
-	/*
-	$(".tw_body[contentEditable=true]").live("focusin",function(e) {
-		$tw.startup.editToolbar.show(400);
-	});
-	$(".tw_body[contentEditable=true]").live("focusout",function(e) {
-		$tw.startup.editToolbar.hide(400);
-	});
-	*/
-	
 	$tw.log("Startup ending");
 
 })();
@@ -2544,4 +2609,6 @@ $(function() {
 });
 
 </script>
+</html>
+
 
