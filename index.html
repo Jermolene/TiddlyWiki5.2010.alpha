@@ -223,6 +223,8 @@ h1, .tw_title {
 				<br>
 				<a href="#Contents" class="tw_macro" data-tw-macro="link" data-tw-params="Contents">Contents</a>
 				<br>
+				<a href="#MacroPlayground" class="tw_macro" data-tw-macro="link" data-tw-params="MacroPlayground">MacroPlayground</a>
+				<br>
 				<a href="#Clock" class="tw_macro" data-tw-macro="link" data-tw-params="Clock">Clock</a>
 				<br>
 				<a href="#$tw.templates.tiddler.default" class="tw_macro" data-tw-macro="link" data-tw-params="$tw.templates.tiddler.default">$tw.templates.tiddler.default</a>
@@ -259,9 +261,9 @@ h1, .tw_title {
 		</div>
 		<div class="tw_body">
 			There are also some examples of other macros like this transclusion here:
-			<span class="tw_macro tw_macroOutput" data-tw-macro="transclude" data-tw-params="TiddlyWiki5">
+			<div class="tw_macro tw_macroOutput" data-tw-macro="displayTiddler" data-tw-params="TiddlyWiki5 edit $tw.templates.tiddler.default">
 				(This should be the transcluded text from TiddlyWiki5)
-			</span>. Here's another complicated looking macro that works as a container for other content. Here we go
+			</div>. Here's another complicated looking macro that works as a container for other content. Here we go
 			<span class="tw_macro" data-tw-macro="css" data-tw-params="font-size: 36pt;">
 				<span class="tw_macroContent">
 					and this is the <strong>macro</strong>
@@ -630,7 +632,7 @@ tag: documentation
 Key TiddlyWiki principles
 - [SocialTiddlyWiki](SocialTiddlyWiki)
 - [Tiddlers](Tiddlers)
-- [TiddlerStorage](TiddlerStorage)
+- [TiddlerRevisions](TiddlerRevisions)
 - [FileLayout](FileLayout)
 - [ExecutionModel](ExecutionModel)
 - [MacroProcessing](MacroProcessing)
@@ -1226,34 +1228,15 @@ description: Shim for standard XML apis on Internet Explorer
 
 </script>
 <script type="text/x-tiddler">
-title: TiddlerStorage
+title: TiddlerRevisions
 modifier: JeremyRuston
 modified: 2009-12-28T12:39:34Z
 type: text/x-markdown
 tag: notes
 tag: documentation
 
-- Refresh mechanism would be much easier if it was asynchronous, then we just use a setTimeout(0,function) to trigger a refresh once all the synchronous processing has finished. Hmm might need a way to register tasks to be performed after all refreshes have been dispatched. For instance, switching from edit mode to view mode, (a) save modified tiddler (b) modify the DOM so that the tiddler is the husk of the tiddler in view mode and (c) process refreshes. In such situations there is a risk of seeing a flash of the display between (b) and (c) while waiting for the setTimeout to process. Maybe the answer is to defer (b) into the refresh handling, so there'd be a specific refresh marker for "switching from view to edit mode"
-- Maybe have a monotonic clock that is used to mark updates to the tiddlywiki, and record the current monotime along with a macro, and only refresh it if the store monotime has increased
-- Notifications are javascript callbacks invoked after tiddlers matching a filter have been created, modified or deleted
-- The refresh mechanism is a notification handler that kicks in when any tiddlers are modified. It involves navigating the DOM looking for elements that need to be updated in light of the change.
-- Clarify tiddler and storage object model, notification and refresh mechanism
- - Tiddler objects are immutable, like strings? So you modify them by assigning a new tiddler to the same title, thus creating a new revision.
-- Tiddler objects use getters and setters to enforce read-only access? (means IE8+ only) Perhaps fall back to properties, but can't enforce read-onlyness in IE6
- - Tiddler storage is done as a series of indexes into a set of Tiddler objects representing the revisions of each tiddler. There would be a title index, a user index, and a tag index. All these indexes would need to be maintained for insertions and deletions
- - How are tiddlers from other users handled?
-- Lazy loading model is to explicitly trigger server operations to return additional tiddlers (eg retrieving bag, recipe, or search). The results are added to the store asynchronously, relying on macros autorefreshing to update with the new content
-- Skinny tiddler handling can be reasonably explicit: the server decides when to bake skinny tiddlers into the TiddlyWiki. Ordinarily, the tiddler text reads as a string saying "Not loaded from server". There is a skinny flag, and a lazy loading method to trigger asking the server for the body text. NB A load of a skinny tiddler doesn't create a new revision, but the macro mechanism must still trigger an update
-</script>
-<script type="text/javascript">
-/*tiddlywiki-plugin*
-title: $tw.TiddlerRevision
-description: Object representing an immutable revision of a tiddler
-*/
-
-/*
 A TiddlerRevision object is an immutable collection of fields representing a particular revision
-of a particular tiddler in storage. TiddlerRevision objects cannot be modified, instead a new
+of a particular tiddler. TiddlerRevision objects cannot be modified, instead a new
 revision of the same tiddler is created in storage. (There are subtle exceptions to support lazy loading which are discussed below)
 
 TiddlerRevision objects are created during parsing of the TiddlyWiki source file, in response to user edits, and asychronously to track changes on a server.
@@ -1261,6 +1244,7 @@ TiddlerRevision objects are created during parsing of the TiddlyWiki source file
 TiddlerRevisions can contain arbitrary fields, but TiddlyWiki has special conventions for certain fields:
 
 title - string
+type - MIME type of the content
 tags - array of strings
 text - string or function, see below
 _* - any field starting with an underscore is not serialised (and therefore won't get saved or synced to a server)
@@ -1271,6 +1255,14 @@ To support asynchronous lazy loading, where a server must be consulted to retrie
 
 The global function $tw.TiddlerRevision.getText() retrieves the text of the tiddler revision, handling the situation where the text field has been specified as a function. It also stores the resulting string directly in the TiddlerRevision's text field for subsequent access.
 
+</script>
+<script type="text/javascript">
+/*tiddlywiki-plugin*
+title: $tw.TiddlerRevision
+description: Object representing an immutable revision of a tiddler
+*/
+
+/*
 TODO: Although the immutability of TiddlerRevision objects can't be enforced on all browsers, it
 may be worth adding property setters that do so for HTML5 browsers
 */
@@ -1287,23 +1279,28 @@ $tw.TiddlerRevision.getText = function(tiddlerRevision) {
 };
 
 </script>
-<script type="text/javascript">
-/*tiddlywiki-plugin*
-title: $tw.Tiddler
-description: Object representing a Tiddler
-*/
+<script type="text/x-tiddler">
+title: Tiddlers
+modifier: JeremyRuston
+modified: 2009-02-28T12:39:34Z
+type: text/x-markdown
+tag: notes
+tag: documentation
 
-/*
 A Tiddler object is an indexed collection of tiddler revisions
 
-Tiddler objects allow for direct access to the following fields:
+Tiddler objects allow for direct access to the following fields of the most recent revision:
 - title - eg myTiddler.title
 - tags - eg myTiddler.tags.length
 - type
 
-To access the text of a tiddler, use the myTiddler.getText() method. To obtain all of the fields of a tiddler, use the myTiddler.getFields() method (the text field will only be included if it previously been requested with myTiddler.getText())
+To access the text of the most recent revision of a tiddler, use the myTiddler.getText() method. To obtain all of the fields of a tiddler, use the myTiddler.getFields() method (the text field will only be included if it has previously been requested with myTiddler.getText())
 
-
+</script>
+<script type="text/javascript">
+/*tiddlywiki-plugin*
+title: $tw.Tiddler
+description: Object representing a Tiddler
 */
 
 // Create a Tiddler object:
@@ -1413,6 +1410,20 @@ $tw.clock = {};
 })();
 
 </script>
+<script type="text/x-tiddler">
+title: TiddlerStorage
+modifier: JeremyRuston
+modified: 2009-02-28T12:39:34Z
+type: text/x-markdown
+tag: notes
+tag: documentation
+
+Tiddlers are stored in a series of hashmaps by title, user and tag. The indexes are maintained over insertions and deletions.
+
+Notification handlers can be registered which are automatically called after tiddlers matching a given selector have been created, modified or deleted. Notifications are issued asynchronously (using setTimeout(0,fn)). This means that if multiple tiddlers are modified then the notifications are deferred until all the modifications are completed.
+
+One of the default notification handlers is the refresh mechanism which handles updates to macros by traversing the DOM.
+</script>
 <script type="text/javascript">
 /*tiddlywiki-plugin*
 title: $tw.store
@@ -1424,8 +1435,6 @@ $tw.store = {};
 	
 	var tiddlers = {}; // Map of tiddlers by title
 	// TODO: Other maps, indexed on other properties (including a map of deleted tiddlers)
-	
-	var clockLastModified; // Clock time at last modification to the store
 	
 	var notificationCallbacks = []; // Array of {callback: function(), selector: selector}
 	var triggeredNotifications = []; // Subarray of notifications that have already been tripped
