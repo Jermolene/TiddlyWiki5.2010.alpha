@@ -1,0 +1,14 @@
+TiddlyWiki5 is delivered as a single HTML file that contains both the tiddlers (text and other data) of the document, and the JavaScript code needed to provide the TiddlyWiki user interface.
+
+A TiddlyWiki5 file contains content designed to be processed in two ways:
+* Ordinary processing of HTML, CSS and JavaScript by the browser when the file is opened
+* Special processing by the TiddlyWiki5 core code to extract the tiddlers
+
+Tiddlers are encoded within the HTML file in a number of different formats:
+
+* HTML text in {{{<div>}}} tags ($tw.serialisers.html). This is the default format for content in TiddlyWiki5, and ensures that it is visible to search engines and other robots.
+* Text in {{{<sc**pt>}}} tags ($tw.serialisers.scriptTiddler). Tiddlers in this format are a bit easier than HTML to type in a text editor because you don't have to escape HTML characters like < and > (although {{{</sc**pt>}}} does need escaping). It also means that search engines won't look at the content, which can be helpful.
+* JavaScript code in {{{<sc**pt>}}} tags ($tw.serialisers.javascript)
+* CSS definitions in {{{<st*le>}}} tags ($tw.serialisers.stylesheet)
+* Special MHTML comments that can be used by Internet Explorer to render base64 encode images ($tw.serialisers.mhtml)
+

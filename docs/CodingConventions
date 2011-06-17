@@ -1,0 +1,3 @@
+- Usually terms in {{{$tw}}} namespace are singular, and collections of things are plural
+ - eg {{{$tw.macro.*}}} for macro methods and {{{$tw.macros.*}}} for collection of individual macros
+- Be consistent in terminology of node vs. element

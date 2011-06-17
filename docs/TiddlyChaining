@@ -1,0 +1,22 @@
+The {{{$tw()}}} function is modelled on the jQuery {{{$()}}} function. It allows tiddlers to be selected by a variety of criteria, and then traversed and manipulated using an intuitive chaining syntax.
+
+{{{$tw(selector)}}} returns the collection of tiddlers matching a selector. Some examples are:
+
+* {{{$tw("name")}}} - selects the tiddler with the given name (will need to escape spaces and special characters)
+* {{{$tw("HelloThere:8")}}} - selects a particular revision of the named tiddler
+* {{{$tw("HelloThere:2009-12-07T11:32:43")}}} - selects the revision of a named tiddler that was active at a particular time
+* {{{$tw("[[name with spaces]]")}}} - selects the tiddler with the given long name, and only ]] needing escaping
+* {{{$tw("*")}}} - selects all available tiddlers
+* {{{$tw("#tag")}}} - selects all tiddlers with the specified tag
+* {{{$tw("@name")}}} - selects all tiddlers from the specified users
+* {{{$tw("[type[tiddlertype]]")}}} - selects all tiddlers that match the specified type
+
+Methods can be applied to the tiddler collection to traverse and manipulate the tiddlers. For example:
+
+* {{{$tw("#myStuff").sortUp("modified")}}} - selects and sorts all tiddlers with a particular tag
+* {{{$tw("@JoeBloggs").sortDown("created")}}}
+* {{{$tw("#MyTag").filter("[created[today]]").lazyLoad()}}} - triggers lazy loading on all of todays tiddlers with a particular tag
+* {{{$tw("@JoeBloggs").remove("#notes")}}} - Remove all tiddlers from JoeBloggs that are tagged "notes"
+* {{{$tw(somefilter).tags()}}} - all the tags on the selected tiddlers
+* {{{$tw(somefilter).taggedBy()}}} - all the tiddlers tagged by the selected tiddlers
+

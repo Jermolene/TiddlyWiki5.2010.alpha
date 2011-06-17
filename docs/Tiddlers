@@ -1,0 +1,16 @@
+A Tiddler object is a collection of fields representing a particular revision of a particular tiddler. From the perspective of the end user, a Tiddler is immutable and cannot be modified, instead a new revision of the same tiddler is created in storage.
+
+Tiddlers can contain any fields, but the following are treated specially:
+* ''title'': string
+* ''revision'': a positive integer
+* ''type'': MIME type of the content
+* ''tags'': array of tags
+* ''text'': string or function
+
+Additional custom fields can be freely created. By convention any field starting with an underscore is not serialised (and therefore won't get saved or synced to a server)
+
+Tiddlers are created from an array of name/value pairs. These fields are loaded into the tiddler under the control of parsing rules. These allow multiple instances of a specified field to be gathered together as a named array field. This is done by default for the "tag" field name, which is gathered into the "tags" field. By default, fields are treated as singletons, and only the first value specified is used, with any further values discarded.
+
+To support lazy loading, fields support a convention whereby they can be specified as a function instead of a string. The first time such a field of the tiddler needs to be accessed, the function is invoked and the return value is used as the value of the field. This mechanism allows synchronous lazy loading, which is used to defer loading of HTML tiddlers until they are needed.
+
+To support asynchronous lazy loading, where a server must be consulted to retrieve the text of the tiddler, the text() function should trigger the loading of the tiddler from the remote server, and return text indicating that the tiddler is being retrieved from the server. When the remote request returns, the update to the tiddler must be delivered through {{{$tw.store}}} to ensure that updates are triggered.

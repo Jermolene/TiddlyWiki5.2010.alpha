@@ -1,0 +1,17 @@
+!Things to do
+* Replace switch(mimetype) with hashmaps
+* Hungarian notation for variables and parameters? t,n,i = indexes, tidFoo = Tiddler object, twFooFoo = TiddlyWiki object, elBar = DOM element, nodeFoo = DOM node, jBar = jQuery object
+* Sucking in the content of external <sc**pt> tags via ajax so that it is available for saving as a single file
+* Document loading process needs to include text fragments as literal text in the recipe
+* Add special comment markers that are picked up by the recipe and used as the insertion points for including tiddlers not in the original file, with filters for which tiddlers should be stored there (eg systemConfig as <sc**pt> tag), and a cascade down to a default storage marker for tiddlers that don't match the specialisations
+* Process all but the $tw.styles.static CSS block, normalising CSS3 syntax to browser specific syntax, and  processing of CSS variables for eg grid positions and named colours. (Therefore encode the stylesheets so that they are not processed by the browser)
+* Render CSS with a special converter function which creates an HTML rendition, and companion for going back after editting. The HTML rendition includes eg colour swatches which are editable in editMode
+* Add support for tiddler focussing and selecting, usable with keyboard
+* Add support for a 'more...' link that truncates long tiddlers
+* Add support for escaping special characters in tiddler/tag titles (eg #, :, @)
+!!Things to think about
+* Should macro mechanism tie in with jQuery plugins, so what we actually end up with is a declarative syntax for expressing jQuery.fn calls
+* Consider whether it is excessive to have $tw as both JavaScript root and namespace for titles of system tiddlers
+* Add width and height fields for image tiddlers?
+* Note that file saving code can inject VBScript with `vReturn = object.execScript(sExpression, sLanguage)`
+* Figure out theme handling and how it relates to the CSS features
