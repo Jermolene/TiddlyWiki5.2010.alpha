@@ -1,5 +1,0 @@
-Tiddlers are stored in a series of hashmaps by title, user and tag. The indexes are maintained over insertions and deletions.
-
-Notification handlers can be registered which are automatically called after tiddlers matching a given selector have been created, modified or deleted. Notifications are issued asynchronously (using {{{setTimeout(0,fn)}}}). This means that if multiple tiddlers are modified then the notifications are deferred until all the modifications are completed.
-
-One of the default notification handlers is the refresh mechanism which handles updates to macros by traversing the DOM.
