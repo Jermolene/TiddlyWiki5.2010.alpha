@@ -1,0 +1,16 @@
+An important macro is displayTiddler, which creates a tiddler frame (marked with the class "tw_tiddlerFrame") that displays a tiddler complete with a UI for editting, and switching between revisions. HTML5 custom attributes named "data-tw-tiddler-title" and "data-tw-template-title" are hold the title of the tiddler and template used to display it.
+
+Tiddler frames can have a number of states associated with them that are maintained through special classes assigned to the frame:
+
+tw_showDetail - detailed tiddler information is visible
+tw_focussed - tiddler has the keyboard focus
+
+Various macros can be used to create a tiddler container (marked with the class "tw_tiddlerContainer"):
+
+- story is like a conventional TiddlyWiki story column
+- SinglePageMode closes the previous tiddler when a new one is opened
+- Cecily would also be a special container, with standard logic governing which links open in the canvas, and which in, say, an overlay frame, or a tooltip
+
+navigateTiddler should invoke a special method on the container macro when a tiddler is displayed/adjusted/removed. Then something like Cecily could be done as a special container, with standard logic governing which links open in the canvas, and which in, say, an overlay frame, or a tooltip. And single page mode just becomes a special container.
+
+Tooltips could be done as a nested container, as long as we take care in the traversal as we search for the right container. We need to search for the target container first as a child of the frame with the tiddler that contained the link that was clicked on, and then search up the DOM tree looking for containers that are siblings of the parent chain.
